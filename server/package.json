@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "This is an application that can help users search and book rentals in a particular location of their choice",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sendistephen/rental-service.git"
+  },
+  "keywords": [
+    "Book",
+    "rental",
+    "node.js",
+    "express.js"
+  ],
+  "author": "Ssendikadiwa Stephen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sendistephen/rental-service/issues"
+  },
+  "homepage": "https://github.com/sendistephen/rental-service#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
