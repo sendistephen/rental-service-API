@@ -4,6 +4,7 @@
   "description": "This is an application that can help users search and book rentals in a particular location of their choice",
   "main": "app.js",
   "scripts": {
+    "dev": "nodemon app.js",
     "test": "npm run test"
   },
   "repository": {
@@ -23,7 +24,9 @@
   },
   "homepage": "https://github.com/sendistephen/rental-service#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "dotenv": "^8.5.1",
+    "express": "^4.17.1",
+    "mongoose": "^5.12.7"
   },
   "devDependencies": {
     "eslint": "^7.25.0",
