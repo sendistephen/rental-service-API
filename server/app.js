@@ -10,6 +10,12 @@ dbConnection();
 
 const app = express();
 
+// initialize middleware
+app.use(express.json({ extended: false }));
+
+// define application routes
+app.use('/api/v1', require('./routes/user'));
+
 // home route
 app.get('/', (req, res) =>
   res.status(200).send({ status: 200, message: 'Welcome to Rental Service!' })
