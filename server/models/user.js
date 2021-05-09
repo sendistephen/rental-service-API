@@ -72,12 +72,7 @@ userSchema.pre('save', function (next) {
 });
 
 // Load hash from your password DB to compare.
-userSchema.methods.verifyPassword = function (plainTextPassword, callback) {
-  bcrypt.compare(plainTextPassword, this.password, (err, isMatch) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, isMatch);
-  });
+userSchema.methods.verifyPassword = function (plainTextPassword) {
+  return bcrypt.compareSync(plainTextPassword, this.password);
 };
 module.exports = model('User', userSchema);
