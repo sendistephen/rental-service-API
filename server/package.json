@@ -9,6 +9,9 @@
     "start:prod": "NODE_ENV=production nodemon app.js",
     "debug": "ndb app.js"
   },
+  "engines": {
+    "node": ">=15.5.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sendistephen/rental-service.git"
@@ -30,8 +33,7 @@
     "dotenv": "^8.5.1",
     "express": "^4.17.1",
     "mongoose": "^5.12.7",
-    "morgan": "^1.10.0",
-    "validator": "^13.6.0"
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "eslint": "^7.25.0",

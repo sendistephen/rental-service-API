@@ -1,61 +1,35 @@
 const User = require('../models/user');
+const { mongoErrors } = require('../utils/error');
 
 exports.register = async (req, res) => {
-  const { username, firstname, surname, phone, email, password } = req.body;
+  const { firstname, lastname, email, phone, password } = req.body;
 
-  // validate user inputs
-  if (!username.trim()) {
-    return res.status(422).json({
-      error: {
-        username: 'is required',
-        message: 'Username is required',
-      },
+  // check for email and password validation
+  if (!email || !password) {
+    return res.status(422).send({
+      errors: [
+        { title: 'Missing fields', detail: 'Email or password is required' },
+      ],
     });
   }
-  if (!firstname.trim()) {
-    return res.status(422).json({
-      error: {
-        firstname: 'is required',
-        message: 'Firstname is required',
-      },
+  // check if email already exists in db
+  await User.findOne({ email }, (err, emailExists) => {
+    if (err) {
+      return res.status(422).send({ errors: mongoErrors(err.errors) });
+    }
+    if (emailExists) {
+      return res.status(422).send({
+        errors: [{ title: 'Incorrect email', detail: 'Email already in use!' }],
+      });
+    }
+
+    const user = new User({ firstname, lastname, email, phone, password });
+    // save user
+    user.save((err, result) => {
+      if (err) {
+        return res.status(422).send({ errors: mongoErrors(err.errors) });
+      }
+      return res.json({ success: true, message: 'Registration successful!' });
     });
-  }
-  if (!surname.trim()) {
-    return res.status(422).json({
-      error: {
-        surname: 'is required',
-        message: 'Surname is required',
-      },
-    });
-  }
-  if (!phone.trim()) {
-    return res.status(422).json({
-      error: {
-        phone: 'is required',
-        message: 'Phone number is required',
-      },
-    });
-  }
-  if (!password.trim()) {
-    return res.status(422).json({
-      error: {
-        password: 'is required',
-        message: 'Password is required',
-      },
-    });
-  }
-  const user = new User({
-    username,
-    firstname,
-    surname,
-    phone,
-    email,
-    password,
-  });
-  await user.save((err, result) => {
-    if (err) return res.status(422).json({ err });
-    return res
-      .status(201)
-      .send({ message: 'Registration successfull!', result });
   });
 };
