@@ -1,62 +1,46 @@
 const mongoose = require('mongoose');
-const {
-  isLength,
-  isEmail,
-  isStrongPassword,
-  isMobilePhone,
-} = require('validator');
+
 const bcrypt = require('bcrypt');
 
 const { Schema, model } = mongoose;
 
 const userSchema = new Schema({
-  username: {
-    type: String,
-    unique: true,
-    required: [true, 'Username is required'],
-    trim: true,
-    validate: [
-      isLength,
-      { min: 3, max: 32 },
-      'Username must be atleast 3 characters!',
-    ],
-  },
   firstname: {
     type: String,
-    required: [true, 'Username is required'],
+    required: [true, 'First name is required'],
     trim: true,
-    validate: [
-      isLength,
-      { min: 3, max: 32 },
-      'Firstname must be atleast 3 characters!',
-    ],
+    minlength: [3, 'First name is too short, minimum is 3 characters'],
+    maxlength: [32, 'First name is too long, fmaximum is 32 characters'],
   },
-  surname: {
+  lastname: {
     type: String,
-    required: [true, 'Username is required'],
+    required: [true, 'Last name  is required'],
     trim: true,
-    validate: [
-      isLength,
-      { min: 3, max: 32 },
-      'Surname must be atleast 3 characters!',
-    ],
+    minlength: [3, 'Last name too short, minimum is 3 characters'],
+    maxlength: [32, 'Last name too long, maximum is 32 characters'],
   },
   phone: {
     type: String,
     required: [true, 'Phone number is required!'],
-    validate: [isMobilePhone, 'Must provid a valid phone number!'],
   },
   email: {
     type: String,
     unique: true,
     required: [true, 'Email is required!'],
-    validate: [isEmail, 'Email is invalid!'],
+    lowercase: true,
+    match: [
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    ],
   },
   password: {
     type: String,
     trim: true,
     required: [true, 'Password is required!'],
-    validate: [isStrongPassword, 'Password is weak!'],
+    minlength: [
+      6,
+      "Your password is too short so it won't protect your account very well. Please enter at least 6 characters.",
+    ],
+    maxlength: [32, 'Password is too long, Maximum is 32 characters'],
   },
   salt: {
     type: String,

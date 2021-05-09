@@ -4,8 +4,13 @@
   "description": "This is an application that can help users search and book rentals in a particular location of their choice",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon app.js",
-    "test": "npm run test"
+    "dev": "NODE_ENV=development nodemon app.js",
+    "test": "npm run test",
+    "start:prod": "NODE_ENV=production nodemon app.js",
+    "debug": "ndb app.js"
+  },
+  "engines": {
+    "node": ">=15.5.1"
   },
   "repository": {
     "type": "git",
@@ -28,7 +33,7 @@
     "dotenv": "^8.5.1",
     "express": "^4.17.1",
     "mongoose": "^5.12.7",
-    "validator": "^13.6.0"
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "eslint": "^7.25.0",

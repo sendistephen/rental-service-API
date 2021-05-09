@@ -9,6 +9,8 @@
     "func-names": "off",
     "object-shorthand": "off",
     "no-process-exit": "off",
+    "no-restricted-syntax": "off",
+    "no-prototype-builtins": "off",
     "no-shadow": "off",
     "no-param-reassign": "off",
     "no-return-await": "off",

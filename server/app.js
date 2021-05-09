@@ -1,5 +1,6 @@
 const express = require('express');
 const { config } = require('dotenv');
+const morgan = require('morgan');
 const dbConnection = require('./config/database');
 
 // configure dotenv
@@ -11,6 +12,9 @@ dbConnection();
 const app = express();
 
 // initialize middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 app.use(express.json({ extended: false }));
 
 // define application routes
