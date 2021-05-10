@@ -1,8 +1,10 @@
 const JWT = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail');
+const _ = require('lodash');
 const User = require('../models/user');
-
 const { mongoErrors } = require('../utils/error');
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.register = async (req, res) => {
   const { firstname, lastname, email, phone, password } = req.body;
@@ -42,7 +44,6 @@ exports.register = async (req, res) => {
      * send email to user to activate account with the generate token
      * setup email data
      */
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
     const msg = {
       to: email,
@@ -169,4 +170,97 @@ exports.signin = async (req, res) => {
       detail: 'Password is incorrect,please enter correct password',
     });
   });
+};
+
+exports.forgetPassword = async (req, res) => {
+  // find if user exists with given email
+  // generate token
+  // send email link to for using to reset token
+  // populate user doc on the restPasswordToken with token
+  const { email } = req.body;
+  await User.findOne({ email }, (err, foundUser) => {
+    if (err || !foundUser) {
+      return res.status(422).send({
+        errors: [
+          {
+            title: 'No account found',
+            detail: 'There’s no Account with the info you provided.',
+          },
+        ],
+      });
+    }
+    const token = JWT.sign({ _id: foundUser._id }, process.env.JWT_SECRET, {
+      expiresIn: '30m',
+    });
+
+    const msg = {
+      to: email,
+      from: process.env.EMAIL_FROM,
+      subject: 'Password reset link ',
+      html: `
+        <p>Dear <strong>${foundUser.firstname} ${foundUser.lastname}</strong></p>
+        <p>Please click on this <strong><a target="_" href="${process.env.CLIENT_URL}/auth/password/reset/${token}">link</a></strong> reset your password</p>
+        <p>Thanks and Regards</p>
+        <p>Support Team</p>
+      `,
+    };
+
+    return foundUser.updateOne({ resetPasswordToken: token }, (err) => {
+      if (err) {
+        return res.status(422).send({ errors: mongoErrors(err.errors) });
+      }
+      sgMail
+        .send(msg)
+        .then(() =>
+          res.status(200).json({
+            success: true,
+            message: `Email has been sent to ${email}, please follow the instructions to reset your password`,
+          })
+        )
+        .catch((error) => console.log(error));
+    });
+  });
+};
+
+exports.resetPassword = async (req, res) => {
+  // get reset token and new password from user
+  // verify token
+  // update with new data
+  // save new data
+  const { resetPasswordToken, newPassword } = req.body;
+  if (resetPasswordToken) {
+    JWT.verify(resetPasswordToken, process.env.JWT_SECRET, (err) => {
+      if (err) {
+        return res.status(401).json({
+          errors: [
+            {
+              title: 'Invalid token',
+              detail: 'Token is invalid, please try again',
+            },
+          ],
+        });
+      }
+      User.findOne({ resetPasswordToken }, (err, user) => {
+        if (err || !user) {
+          return res.status(422).send({ errors: mongoErrors(err.errors) });
+        }
+        const updatedInfo = {
+          password: newPassword,
+          resetPasswordToken: '',
+        };
+        // modify user doc
+        user = _.extend(user, updatedInfo);
+        // save user
+        user.save((err) => {
+          if (err) {
+            return res.status(422).send({ errors: mongoErrors(err.errors) });
+          }
+          return res.json({
+            title: 'Success',
+            detail: 'Congrats, You can now login with your new password',
+          });
+        });
+      });
+    });
+  }
 };

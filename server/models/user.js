@@ -45,9 +45,9 @@ const userSchema = new Schema({
   salt: {
     type: String,
   },
-  isVerified: {
-    type: Boolean,
-    default: false,
+  resetPasswordToken: {
+    data: String,
+    default: '',
   },
   createdAt: {
     type: Date,
