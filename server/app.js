@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const { config } = require('dotenv');
 const morgan = require('morgan');
 const dbConnection = require('./config/database');
@@ -16,6 +17,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 app.use(express.json({ extended: false }));
+app.use(cors());
 
 // define application routes
 app.use('/api/v1', require('./routes/user'));
