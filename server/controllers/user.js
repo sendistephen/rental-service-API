@@ -264,3 +264,31 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
+exports.getUser = async (req, res) => {
+  const userParamsID = req.params.id;
+  // get user from res.locals variable
+  const { user } = res.locals;
+  // compare if is authenticated user
+  if (userParamsID === user.id) {
+    // get user from the database
+    await User.findById(userParamsID)
+      .select('-password')
+      .exec((err, foundUser) => {
+        if (err) {
+          return res.status(422).json({
+            title: 'Invalid ID',
+            detail: 'User with that ID not found',
+          });
+        }
+        if (foundUser) {
+          return res.json(foundUser);
+        }
+      });
+  } else {
+    return res.status(422).json({
+      title: 'Invalid ID',
+      detail: 'User with that ID not found',
+    });
+  }
+};
