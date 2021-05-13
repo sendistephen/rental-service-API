@@ -10,7 +10,7 @@ const userSchema = new Schema({
     required: [true, 'First name is required'],
     trim: true,
     minlength: [3, 'First name is too short, minimum is 3 characters'],
-    maxlength: [32, 'First name is too long, fmaximum is 32 characters'],
+    maxlength: [32, 'First name is too long, maximum is 32 characters'],
   },
   lastname: {
     type: String,
@@ -52,6 +52,10 @@ const userSchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  rentals: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Rental',
   },
 });
 
