@@ -2,7 +2,6 @@ const JWT = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail');
 const _ = require('lodash');
 const User = require('../models/user');
-const { mongoErrors } = require('../utils/error');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -11,20 +10,20 @@ exports.register = async (req, res) => {
 
   // check for email and password validation
   if (!email || !password) {
-    return res.status(422).send({
-      errors: [
-        { title: 'Missing fields', detail: 'Email or password is required' },
-      ],
+    return res.handleApiError({
+      title: 'Missing fields',
+      detail: 'Email or password is required',
     });
   }
   // check if email already exists in db
   await User.findOne({ email }, (err, foundUser) => {
     if (err) {
-      return res.status(422).send({ errors: mongoErrors(err.errors) });
+      return res.databaseError(err);
     }
     if (foundUser) {
-      return res.status(422).send({
-        errors: [{ title: 'Incorrect email', detail: 'Email already in use!' }],
+      return res.handleApiError({
+        title: 'Incorrect email',
+        detail: 'Email already in use!',
       });
     }
 
@@ -38,7 +37,7 @@ exports.register = async (req, res) => {
         password,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1hr' }
+      { expiresIn: 30 }
     );
     /**
      * send email to user to activate account with the generate token
@@ -77,13 +76,10 @@ exports.activateAccount = async (req, res) => {
   if (token) {
     JWT.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
       if (err) {
-        return res.status(401).json({
-          errors: [
-            {
-              title: 'Invalid token',
-              detail: 'Token is invalid, please signup again',
-            },
-          ],
+        return res.handleApiError({
+          status: 401,
+          title: 'Invalid token',
+          detail: 'Token is invalid, please signup again',
         });
       }
       // get user data from decodedToken
@@ -91,17 +87,13 @@ exports.activateAccount = async (req, res) => {
 
       // check if user exists with the given email
       User.findOne({ email }, (err, foundUser) => {
-        if (err)
-          return res.status(422).send({ errors: mongoErrors(err.errors) });
+        if (err) return res.databaseError(err);
 
         if (foundUser) {
-          return res.status(422).send({
-            errors: [
-              {
-                title: 'Account verified',
-                detail: 'Account already verified. Please login',
-              },
-            ],
+          return res.handleApiError({
+            status: 401,
+            title: 'Account verified',
+            detail: 'Account already verified. Please login',
           });
         }
 
@@ -110,7 +102,7 @@ exports.activateAccount = async (req, res) => {
 
         user.save((err) => {
           if (err) {
-            return res.status(422).send({ errors: mongoErrors(err.errors) });
+            return res.databaseError(err);
           }
           return res.json({
             success: true,
@@ -127,26 +119,21 @@ exports.signin = async (req, res) => {
 
   if (!email || !password) {
     if (!email || !password) {
-      return res.status(422).send({
-        errors: [
-          { title: 'Missing fields', detail: 'Email or password is required' },
-        ],
+      return res.handleApiError({
+        title: 'Missing fields',
+        detail: 'Email or password is required',
       });
     }
   }
   // check if user exists by email
   await User.findOne({ email }, (err, foundUser) => {
     if (err) {
-      return res.status(422).send({ errors: mongoErrors(err.errors) });
+      return res.databaseError(err);
     }
     if (!foundUser) {
-      return res.status(422).send({
-        errors: [
-          {
-            title: 'Incorrect email',
-            details: 'User with that email does not exist, Please signup',
-          },
-        ],
+      return res.handleApiError({
+        title: 'Incorrect email',
+        detail: 'User with that email does not exist, Please signup',
       });
     }
     // user exists, comapare password and generate token
@@ -158,14 +145,14 @@ exports.signin = async (req, res) => {
           lastname: foundUser.lastname,
         },
         process.env.JWT_SECRET,
-        { expiresIn: '1hr' }
+        { expiresIn: 30 }
       );
 
       const { lastname, email, phone } = foundUser;
 
       return res.json({ token, user: { lastname, email, phone } });
     }
-    return res.status(422).json({
+    return res.handleApiError({
       title: 'Invalid password',
       detail: 'Password is incorrect,please enter correct password',
     });
@@ -180,17 +167,13 @@ exports.forgetPassword = async (req, res) => {
   const { email } = req.body;
   await User.findOne({ email }, (err, foundUser) => {
     if (err || !foundUser) {
-      return res.status(422).send({
-        errors: [
-          {
-            title: 'No account found',
-            detail: 'There’s no Account with the info you provided.',
-          },
-        ],
+      return res.handleApiError({
+        title: 'No account found',
+        detail: 'There’s no Account with the info you provided.',
       });
     }
     const token = JWT.sign({ _id: foundUser._id }, process.env.JWT_SECRET, {
-      expiresIn: '30m',
+      expiresIn: 30,
     });
 
     const msg = {
@@ -207,7 +190,7 @@ exports.forgetPassword = async (req, res) => {
 
     return foundUser.updateOne({ resetPasswordToken: token }, (err) => {
       if (err) {
-        return res.status(422).send({ errors: mongoErrors(err.errors) });
+        return res.databaseError(err);
       }
       sgMail
         .send(msg)
@@ -231,18 +214,15 @@ exports.resetPassword = async (req, res) => {
   if (resetPasswordToken) {
     JWT.verify(resetPasswordToken, process.env.JWT_SECRET, (err) => {
       if (err) {
-        return res.status(401).json({
-          errors: [
-            {
-              title: 'Invalid token',
-              detail: 'Token is invalid, please try again',
-            },
-          ],
+        return res.handleApiError({
+          status: 401,
+          title: 'Invalid token',
+          detail: 'Token is invalid, please try again',
         });
       }
       User.findOne({ resetPasswordToken }, (err, user) => {
         if (err || !user) {
-          return res.status(422).send({ errors: mongoErrors(err.errors) });
+          return res.databaseError(err);
         }
         const updatedInfo = {
           password: newPassword,
@@ -253,7 +233,7 @@ exports.resetPassword = async (req, res) => {
         // save user
         user.save((err) => {
           if (err) {
-            return res.status(422).send({ errors: mongoErrors(err.errors) });
+            return res.databaseError(err);
           }
           return res.json({
             title: 'Success',
@@ -276,7 +256,7 @@ exports.getUser = async (req, res) => {
       .select('-password')
       .exec((err, foundUser) => {
         if (err) {
-          return res.status(422).json({
+          return res.handleApiError({
             title: 'Invalid ID',
             detail: 'User with that ID not found',
           });
@@ -286,7 +266,7 @@ exports.getUser = async (req, res) => {
         }
       });
   } else {
-    return res.status(422).json({
+    return res.handleApiError({
       title: 'Invalid ID',
       detail: 'User with that ID not found',
     });

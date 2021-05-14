@@ -12,8 +12,12 @@ function notAuthorized(res) {
   });
 }
 function parseToken(token) {
-  // split token and access token at position 1
-  return JWT.verify(token.split(' ')[1], process.env.JWT_SECRET) || null;
+  try {
+    return JWT.verify(token.split(' ')[1], process.env.JWT_SECRET);
+  } catch (error) {
+    return null;
+  }
+  // split token [Bearer jehfejfedbhehebee] and access token at position 1
 }
 
 exports.authorized = (req, res, next) => {
