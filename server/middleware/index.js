@@ -1,4 +1,5 @@
 /* eslint-disable guard-for-in */
+const mongoose = require('mongoose');
 
 exports.errorHandler = (req, res, next) => {
   res.handleApiError = (config) => {
@@ -35,5 +36,20 @@ exports.errorHandler = (req, res, next) => {
     }
     return res.status(422).send({ errors: normalizeErrors });
   };
+  next();
+};
+
+/**
+ *
+ * @param {*} objectId
+ * @description This middleware checks for a valid object ID
+ */
+exports.checkObjectId = (objectId) => (req, res, next) => {
+  objectId = req.params.rentalId;
+  if (!mongoose.Types.ObjectId.isValid(objectId))
+    return res.status(404).send({
+      title: 'Invalid ID',
+      details: `Resource with the given ID (${objectId}) not found`,
+    });
   next();
 };

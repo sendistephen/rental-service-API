@@ -12,7 +12,7 @@ const rentalSchema = new Schema({
   summary: {
     type: String,
     trim: [true, 'Summary is required'],
-    maxlength: [250, 'Summary is too long, only 250 characters allowed'],
+    maxlength: [1000, 'Summary is too long, only 1000 characters allowed'],
     property_type: { type: String, required: true },
   },
   city: { type: String, required: true, trim: true, lowercase: true },

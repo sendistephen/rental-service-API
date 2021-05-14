@@ -145,7 +145,7 @@ exports.signin = async (req, res) => {
           lastname: foundUser.lastname,
         },
         process.env.JWT_SECRET,
-        { expiresIn: 30 }
+        { expiresIn: '1hr' }
       );
 
       const { lastname, email, phone } = foundUser;
