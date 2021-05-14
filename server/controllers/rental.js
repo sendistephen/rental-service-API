@@ -5,7 +5,7 @@ exports.create = async (req, res) => {
   rentalData.owner = res.locals.user;
 
   //  create rental
-  Rental.create(rentalData, (err, savedRental) => {
+  await Rental.create(rentalData, (err, savedRental) => {
     if (err) {
       return res.databaseError(err);
     }
