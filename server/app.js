@@ -3,6 +3,7 @@ const cors = require('cors');
 const { config } = require('dotenv');
 const morgan = require('morgan');
 const dbConnection = require('./config/database');
+const { errorHandler } = require('./middleware');
 
 // configure dotenv
 config();
@@ -18,9 +19,12 @@ if (process.env.NODE_ENV === 'development') {
 }
 app.use(express.json({ extended: false }));
 app.use(cors());
+// error handler middleware
+app.use(errorHandler);
 
 // define application routes
 app.use('/api/v1/users', require('./routes/user'));
+app.use('/api/v1/rentals', require('./routes/rental'));
 
 // home route
 app.get('/', (req, res) =>
