@@ -35,7 +35,7 @@ exports.getRentals = async (req, res) => {
     }
     if (foundRentals.length === 0) {
       return res.handleApiError({
-        title: 'Not rentals founds',
+        title: 'No rentals found',
         detail: `Currently no rentals found in ${city}`,
       });
     }
@@ -57,5 +57,41 @@ exports.getRental = async (req, res) => {
       return res.databaseError(err);
     }
     return res.json(foundRental);
+  });
+};
+
+/**
+ * @route DELETE /api/v1/rentals/609e38f1e471e11acb75fe13"
+ * @Access PRIVATE
+ * @description This end point deletes a single rental
+ */
+exports.deleteRental = async (req, res) => {
+  const { rentalId } = req.params;
+  const { user } = res.locals;
+
+  // find rental given the rental Id and populate with owner
+  const rental = await Rental.findById(rentalId).populate('owner');
+  // rental does not exist
+  if (!rental) {
+    return res.handleApiError({
+      status: 404,
+      title: 'Not found',
+      detail: `Resource with the given id (${rentalId}) not found.`,
+    });
+  }
+  // // check if user is owner of rental
+  if (user.id !== rental.owner.id) {
+    return res.handleApiError({
+      title: 'Not authorized',
+      detail: 'Ooops, you are not owner of this rental',
+    });
+  }
+  // if owner then delete rental
+  await rental.remove((err) => {
+    if (err) return res.databaseError(err);
+    return res.json({
+      success: true,
+      detail: 'Resource removed successfully!',
+    });
   });
 };
