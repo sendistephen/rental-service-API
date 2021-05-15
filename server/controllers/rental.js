@@ -95,3 +95,38 @@ exports.deleteRental = async (req, res) => {
     });
   });
 };
+
+/**
+ * @route UPDATE /api/v1/rentals/609e38f1e471e11acb75fe13"
+ * @Access PRIVATE
+ * @description This end point updates a rental
+ */
+exports.update = async (req, res) => {
+  // get rentalId from req params
+  const { rentalId } = req.params;
+  // get user from res object
+  const { user } = res.locals;
+  // get form data
+  const rentalData = req.body;
+
+  // find if rental exists with the given id in the database
+  const rental = await Rental.findById(rentalId).populate('owner');
+  if (!rental) {
+    return res.handleApiError({
+      status: 404,
+      title: 'Not found',
+      detail: `Resource with the given id (${rentalId}) not found.`,
+    });
+  }
+  // make sure the user updating rental is the actual owner
+  if (user.id !== rental.owner.id) {
+    return res.handleApiError({
+      title: 'Not authorized',
+      detail: 'Ooops, you are not owner of this rental',
+    });
+  }
+  // set new properties on the rental -> update rental object
+  rental.set(rentalData);
+  await rental.save();
+  return res.status(200).json(rental);
+};
