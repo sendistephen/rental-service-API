@@ -46,7 +46,7 @@ exports.errorHandler = (req, res, next) => {
  * @description This middleware checks for a valid object ID
  */
 exports.checkObjectId = (objectId) => (req, res, next) => {
-  objectId = req.params.rentalId;
+  objectId = req.params.rentalId || req.params.bookingID;
   if (!mongoose.Types.ObjectId.isValid(objectId))
     return res.status(404).send({
       title: 'Invalid ID',
