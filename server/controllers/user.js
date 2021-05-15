@@ -5,7 +5,7 @@ const User = require('../models/user');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-exports.register = async (req, res) => {
+exports.register = (req, res) => {
   const { firstname, lastname, email, phone, password } = req.body;
 
   // check for email and password validation
@@ -16,7 +16,7 @@ exports.register = async (req, res) => {
     });
   }
   // check if email already exists in db
-  await User.findOne({ email }, (err, foundUser) => {
+  User.findOne({ email }, (err, foundUser) => {
     if (err) {
       return res.databaseError(err);
     }
@@ -37,7 +37,7 @@ exports.register = async (req, res) => {
         password,
       },
       process.env.JWT_SECRET,
-      { expiresIn: 30 }
+      { expiresIn: '1hr' }
     );
     /**
      * send email to user to activate account with the generate token
@@ -69,7 +69,7 @@ exports.register = async (req, res) => {
   });
 };
 
-exports.activateAccount = async (req, res) => {
+exports.activateAccount = (req, res) => {
   // get token sent to user in req.body
   const { token } = req.body;
 
@@ -114,7 +114,7 @@ exports.activateAccount = async (req, res) => {
   }
 };
 
-exports.signin = async (req, res) => {
+exports.signin = (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -126,7 +126,7 @@ exports.signin = async (req, res) => {
     }
   }
   // check if user exists by email
-  await User.findOne({ email }, (err, foundUser) => {
+  User.findOne({ email }, (err, foundUser) => {
     if (err) {
       return res.databaseError(err);
     }
@@ -159,13 +159,13 @@ exports.signin = async (req, res) => {
   });
 };
 
-exports.forgetPassword = async (req, res) => {
+exports.forgetPassword = (req, res) => {
   // find if user exists with given email
   // generate token
   // send email link to for using to reset token
   // populate user doc on the restPasswordToken with token
   const { email } = req.body;
-  await User.findOne({ email }, (err, foundUser) => {
+  User.findOne({ email }, (err, foundUser) => {
     if (err || !foundUser) {
       return res.handleApiError({
         title: 'No account found',
@@ -205,7 +205,7 @@ exports.forgetPassword = async (req, res) => {
   });
 };
 
-exports.resetPassword = async (req, res) => {
+exports.resetPassword = (req, res) => {
   // get reset token and new password from user
   // verify token
   // update with new data
@@ -245,14 +245,14 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-exports.getUser = async (req, res) => {
+exports.getUser = (req, res) => {
   const userParamsID = req.params.id;
   // get user from res.locals variable
   const { user } = res.locals;
   // compare if is authenticated user
   if (userParamsID === user.id) {
     // get user from the database
-    await User.findById(userParamsID)
+    User.findById(userParamsID)
       .select('-password')
       .exec((err, foundUser) => {
         if (err) {

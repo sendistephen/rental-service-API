@@ -25,6 +25,7 @@ app.use(errorHandler);
 // define application routes
 app.use('/api/v1/users', require('./routes/user'));
 app.use('/api/v1/rentals', require('./routes/rental'));
+app.use('/api/v1/bookings', require('./routes/booking'));
 
 // home route
 app.get('/', (req, res) =>
