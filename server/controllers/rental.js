@@ -1,6 +1,23 @@
 const Rental = require('../models/rental');
 
 /**
+ * @route POST /api/v1/rentals/me
+ * @Access PRIVATE
+ * @description This end point retrieves all rentals for the user making a request
+ */
+exports.getUserRentals = (req, res) => {
+  const { user } = res.locals;
+
+  // get rentals where owner is user.id
+  Rental.find({ owner: user }, (err, rentals) => {
+    if (err) {
+      return res.databaseError(err);
+    }
+    return res.json(rentals);
+  });
+};
+
+/**
  * @route POST /api/v1/rentals
  * @Access PRIVATE
  * @description This end point adds a new rental to the database collection
