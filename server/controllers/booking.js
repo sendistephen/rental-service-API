@@ -144,3 +144,46 @@ exports.create = (req, res) => {
     }
   });
 };
+/**
+ * @route DELETE /api/v1/bookings/uerueejbfhefbefejj
+ * @access: PRIVATE
+ * @description: This route allows rental owner of the booking to delete it
+ */
+exports.deleteBooking = async (req, res) => {
+  // get booking ID from the params
+  const { bookingID } = req.params;
+  // get current logged in user from res object
+  const { user } = res.locals;
+
+  const ALLOWED_DAYS = 3;
+
+  try {
+    //iterate over the bookings
+    const booking = await Booking.findById(bookingID).populate('user');
+
+    // check if the user is owner of rental\
+    if (user.id !== booking.user.id) {
+      return res.handleApiError({
+        status: 401,
+        title: 'Not authorized',
+        detail: 'You are not rental owner',
+      });
+    }
+    // ensure the booking is not active or about to start
+    // delete booking that are 3 days and above to start
+    if (moment(booking.startAt).diff(moment(), 'days') > ALLOWED_DAYS) {
+      await booking.remove();
+      return res.json({
+        success: true,
+        ID: bookingID,
+      });
+    }
+    return res.handleApiError({
+      title: 'Operation failed',
+      detail:
+        'You can not delete this booking. Bookings that are atleast 3 days to arrival can not be deleted.',
+    });
+  } catch (error) {
+    return res.databaseError(error);
+  }
+};

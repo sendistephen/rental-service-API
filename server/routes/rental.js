@@ -20,7 +20,7 @@ router.delete(
   deleteRental
 );
 router.patch('/:rentalId', [authorized, checkObjectId('rentalId')], update);
-router.get('/:rentalId', getRental);
+router.get('/:rentalId', checkObjectId('rentalId'), getRental);
 router.post('/', authorized, create);
 
 module.exports = router;
