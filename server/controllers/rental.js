@@ -1,6 +1,23 @@
 const Rental = require('../models/rental');
 
 /**
+ * @route POST /api/v1/rentals/me
+ * @Access PRIVATE
+ * @description This end point retrieves all rentals for the logged in user making a request
+ */
+exports.getUserRentals = (req, res) => {
+  const { user } = res.locals;
+
+  // get rentals where owner is user ->id
+  Rental.find({ owner: user }, (err, rentals) => {
+    if (err) {
+      return res.databaseError(err);
+    }
+    return res.json(rentals);
+  });
+};
+
+/**
  * @route POST /api/v1/rentals
  * @Access PRIVATE
  * @description This end point adds a new rental to the database collection
@@ -29,18 +46,20 @@ exports.getRentals = (req, res) => {
   // build query
   const query = city ? { city: city.toLowerCase() } : {};
   // find rentals from the city provided
-  Rental.find(query).exec((err, foundRentals) => {
-    if (err) {
-      return res.databaseError(err);
-    }
-    if (foundRentals.length === 0) {
-      return res.handleApiError({
-        title: 'No rentals found',
-        detail: `Currently no rentals found in ${city}`,
-      });
-    }
-    return res.json(foundRentals);
-  });
+  Rental.find(query)
+    .select('-bookings')
+    .exec((err, foundRentals) => {
+      if (err) {
+        return res.databaseError(err);
+      }
+      if (foundRentals.length === 0) {
+        return res.handleApiError({
+          title: 'No rentals found',
+          detail: `Currently no rentals found in ${city}`,
+        });
+      }
+      return res.json(foundRentals);
+    });
 };
 
 /**
@@ -52,12 +71,15 @@ exports.getRental = (req, res) => {
   // get rental id from params
   const { rentalId } = req.params;
   // find rental based on the ID given
-  Rental.findById(rentalId).exec((err, foundRental) => {
-    if (err) {
-      return res.databaseError(err);
-    }
-    return res.json(foundRental);
-  });
+  Rental.findById(rentalId)
+    .populate('user', 'firstname -password -_id')
+    .populate('bookings', 'startAt endAt -_id')
+    .exec((err, foundRental) => {
+      if (err) {
+        return res.databaseError(err);
+      }
+      return res.json(foundRental);
+    });
 };
 
 /**

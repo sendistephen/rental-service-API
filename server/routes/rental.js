@@ -5,12 +5,15 @@ const {
   getRental,
   deleteRental,
   update,
+  getUserRentals,
 } = require('../controllers/rental');
 const { authorized } = require('../middleware/auth');
 const { checkObjectId } = require('../middleware');
 
 const router = express.Router();
 
+router.get('/me', authorized, getUserRentals);
+router.get('/', getRentals);
 router.delete(
   '/:rentalId',
   [authorized, checkObjectId('rentalId')],
@@ -19,6 +22,5 @@ router.delete(
 router.patch('/:rentalId', [authorized, checkObjectId('rentalId')], update);
 router.get('/:rentalId', getRental);
 router.post('/', authorized, create);
-router.get('/', getRentals);
 
 module.exports = router;

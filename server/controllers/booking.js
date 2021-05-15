@@ -1,5 +1,6 @@
 const moment = require('moment');
 const Booking = require('../models/booking');
+const Rental = require('../models/rental');
 
 /**
  *
@@ -49,6 +50,52 @@ function checkIfBookingDatesAreValid(booking) {
   }
   return isValid;
 }
+
+/**
+ * @route GET /api/v1/bookings/me
+ * @Access PRIVATE
+ * @description This end point retrieves all user bookings
+ */
+exports.getUserBookings = (req, res) => {
+  const { user } = res.locals;
+
+  Booking.find({ user })
+    .populate('user', '-password')
+    .populate('rental')
+    .exec((err, bookings) => {
+      if (err) {
+        return res.databaseError(err);
+      }
+      return res.json(bookings);
+    });
+};
+
+/**
+ * @route GET /api/v1/bookings/recieved
+ * @Access PRIVATE
+ * @description This end point retrieves all user bookings made on the owners rental
+ */
+exports.getRecievedBookings = async (req, res) => {
+  const { user } = res.locals;
+
+  /**
+   * get all the rentals that this (user) is owning where owner the property on rental is (user)
+   *Return only the IDs
+   * */
+  try {
+    const rentals = await Rental.find({ owner: user }, '_id');
+    // itelate rentals to get only rental IDs array
+    const rentalIds = rentals.map((rental) => rental.id);
+
+    // fetch bookings and find all the rentals included in rentalIds
+    const bookings = await Booking.find({ rental: { $in: rentalIds } })
+      .populate('user')
+      .populate('rental');
+    return res.json(bookings);
+  } catch (error) {
+    return res.databaseError(error);
+  }
+};
 
 /**
  * @route POST /api/v1/bookings
