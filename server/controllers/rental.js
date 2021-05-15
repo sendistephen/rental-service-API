@@ -1,4 +1,5 @@
 const Rental = require('../models/rental');
+const Booking = require('../models/booking');
 
 /**
  * @route POST /api/v1/rentals/me
@@ -87,35 +88,39 @@ exports.getRental = (req, res) => {
  * @Access PRIVATE
  * @description This end point deletes a single rental
  */
-exports.deleteRental = (req, res) => {
+exports.deleteRental = async (req, res) => {
   const { rentalId } = req.params;
   const { user } = res.locals;
 
-  // find rental given the rental Id and populate with owner
-  const rental = Rental.findById(rentalId).populate('owner');
-  // rental does not exist
-  if (!rental) {
-    return res.handleApiError({
-      status: 404,
-      title: 'Not found',
-      detail: `Resource with the given id (${rentalId}) not found.`,
-    });
+  try {
+    // find rental given the rental Id and populate with owner
+    const rental = await Rental.findById(rentalId).populate('owner');
+
+    // find bookings on the rental
+    const booking = await Booking.find({ rental });
+
+    // check if user is owner of rental
+    if (user.id !== rental.owner.id) {
+      return res.handleApiError({
+        status: 401,
+        title: 'Not authorized',
+        detail: 'Ooops, you are not owner of this rental',
+      });
+    }
+    // check if rental has active bookings
+    if (booking && booking.length > 0) {
+      return res.handleApiError({
+        title: 'Active bookings',
+        detail: 'Can not delete rental with active bookings',
+      });
+    }
+    // remove rental
+    await rental.remove();
+
+    return res.json({ success: true, ID: rentalId });
+  } catch (error) {
+    return res.databaseError(error);
   }
-  // // check if user is owner of rental
-  if (user.id !== rental.owner.id) {
-    return res.handleApiError({
-      title: 'Not authorized',
-      detail: 'Ooops, you are not owner of this rental',
-    });
-  }
-  // if owner then delete rental
-  rental.remove((err) => {
-    if (err) return res.databaseError(err);
-    return res.json({
-      success: true,
-      detail: 'Resource removed successfully!',
-    });
-  });
 };
 
 /**
