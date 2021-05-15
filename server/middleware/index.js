@@ -1,5 +1,6 @@
 /* eslint-disable guard-for-in */
 const mongoose = require('mongoose');
+const Rental = require('../models/rental');
 
 exports.errorHandler = (req, res, next) => {
   res.handleApiError = (config) => {
@@ -52,4 +53,30 @@ exports.checkObjectId = (objectId) => (req, res, next) => {
       details: `Resource with the given ID (${objectId}) not found`,
     });
   next();
+};
+
+/**
+ * @description This middleware checks if the user is the actual owner of the rental
+ */
+exports.checkIfUserIsOwnerOfRental = async (req, res, next) => {
+  // get currently logged in user from the locals
+  const { user } = res.locals;
+  // get rental from the request body
+  const { rental } = req.body;
+  // find rental
+  await Rental.findById(rental)
+    .populate('owner')
+    .exec((err, foundRental) => {
+      if (err) {
+        return res.databaseError(err);
+      }
+      // check if rental owner Id is same as logged in user id
+      if (user.id === foundRental.owner.id) {
+        return res.handleApiError({
+          title: 'Not allowed',
+          detail: 'You can not create a booking on your own rental',
+        });
+      }
+      next();
+    });
 };

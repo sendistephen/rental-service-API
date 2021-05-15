@@ -5,12 +5,12 @@ const Rental = require('../models/rental');
  * @Access PRIVATE
  * @description This end point adds a new rental to the database collection
  */
-exports.create = async (req, res) => {
+exports.create = (req, res) => {
   const rentalData = req.body;
   rentalData.owner = res.locals.user;
 
   //  create rental
-  await Rental.create(rentalData, (err, savedRental) => {
+  Rental.create(rentalData, (err, savedRental) => {
     if (err) {
       return res.databaseError(err);
     }
@@ -23,13 +23,13 @@ exports.create = async (req, res) => {
  * @Access PUBLIC
  * @description This end point gets all the rentals from the database
  */
-exports.getRentals = async (req, res) => {
+exports.getRentals = (req, res) => {
   // get search creteria from query params
   const { city } = req.query;
   // build query
   const query = city ? { city: city.toLowerCase() } : {};
   // find rentals from the city provided
-  await Rental.find(query).exec((err, foundRentals) => {
+  Rental.find(query).exec((err, foundRentals) => {
     if (err) {
       return res.databaseError(err);
     }
@@ -48,11 +48,11 @@ exports.getRentals = async (req, res) => {
  * @Access PUBLIC
  * @description This end point gets the details of a single rental
  */
-exports.getRental = async (req, res) => {
+exports.getRental = (req, res) => {
   // get rental id from params
   const { rentalId } = req.params;
   // find rental based on the ID given
-  await Rental.findById(rentalId).exec((err, foundRental) => {
+  Rental.findById(rentalId).exec((err, foundRental) => {
     if (err) {
       return res.databaseError(err);
     }
@@ -65,12 +65,12 @@ exports.getRental = async (req, res) => {
  * @Access PRIVATE
  * @description This end point deletes a single rental
  */
-exports.deleteRental = async (req, res) => {
+exports.deleteRental = (req, res) => {
   const { rentalId } = req.params;
   const { user } = res.locals;
 
   // find rental given the rental Id and populate with owner
-  const rental = await Rental.findById(rentalId).populate('owner');
+  const rental = Rental.findById(rentalId).populate('owner');
   // rental does not exist
   if (!rental) {
     return res.handleApiError({
@@ -87,7 +87,7 @@ exports.deleteRental = async (req, res) => {
     });
   }
   // if owner then delete rental
-  await rental.remove((err) => {
+  rental.remove((err) => {
     if (err) return res.databaseError(err);
     return res.json({
       success: true,
@@ -101,7 +101,7 @@ exports.deleteRental = async (req, res) => {
  * @Access PRIVATE
  * @description This end point updates a rental
  */
-exports.update = async (req, res) => {
+exports.update = (req, res) => {
   // get rentalId from req params
   const { rentalId } = req.params;
   // get user from res object
@@ -110,7 +110,7 @@ exports.update = async (req, res) => {
   const rentalData = req.body;
 
   // find if rental exists with the given id in the database
-  const rental = await Rental.findById(rentalId).populate('owner');
+  const rental = Rental.findById(rentalId).populate('owner');
   if (!rental) {
     return res.handleApiError({
       status: 404,
@@ -127,6 +127,6 @@ exports.update = async (req, res) => {
   }
   // set new properties on the rental -> update rental object
   rental.set(rentalData);
-  await rental.save();
+  rental.save();
   return res.status(200).json(rental);
 };
