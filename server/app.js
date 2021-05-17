@@ -27,6 +27,7 @@ app.use('/api/v1/users', require('./routes/user'));
 app.use('/api/v1/rentals', require('./routes/rental'));
 app.use('/api/v1/bookings', require('./routes/booking'));
 app.use('/api/v1/image-upload', require('./routes/image-upload'));
+app.use('/api/v1/payments', require('./routes/payment'));
 
 // home route
 app.get('/', (req, res) =>

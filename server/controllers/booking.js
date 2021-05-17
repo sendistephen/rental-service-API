@@ -33,10 +33,10 @@ async function createPayment(booking, toUser, token) {
     const payment = new Payment({
       fromUser: user,
       toUser,
-      fromStripeCustomerId: customer.id,
+      stripeCustomerId: customer.id,
       booking,
       tokenId: token,
-      amount: booking.amount * 100 * CUSTOMER_DISCOUNT,
+      amount: booking.price * 100 * CUSTOMER_DISCOUNT,
     });
     try {
       // save payment
