@@ -1,6 +1,54 @@
 const moment = require('moment');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Booking = require('../models/booking');
+const Payment = require('../models/payment');
 const Rental = require('../models/rental');
+const User = require('../models/user');
+
+const CUSTOMER_DISCOUNT = 0.8;
+/**
+ *
+ * @param {*} booking  Booking that we want to make payment on
+ * @param {*} toUser  Owner of rental to recieve payment
+ * @param {*} token  Special token we recieve from stripe when    provide a valid credit card.
+ */
+async function createPayment(booking, toUser, token) {
+  const { user } = booking; // user we want to charge that created a booking
+
+  // create stripe customer
+  const customer = await stripe.customers.create({
+    source: token.id,
+    email: user.email,
+  });
+
+  // check if we have a customer
+  if (customer) {
+    // update user (stripeCustomerId) record before payment -> the user we want to charge
+    User.updateOne(
+      { _id: user.id },
+      { $set: { stripeCustomerId: customer.id } },
+      () => {}
+    );
+    // create payement
+    const payment = new Payment({
+      fromUser: user,
+      toUser,
+      fromStripeCustomerId: customer.id,
+      booking,
+      tokenId: token,
+      amount: booking.amount * 100 * CUSTOMER_DISCOUNT,
+    });
+    try {
+      // save payment
+      const savedPayment = await payment.save();
+      return { payment: savedPayment };
+    } catch (error) {
+      return { error: error.message };
+    }
+  } else {
+    return { error: 'Payment can not be processed!' };
+  }
+}
 
 /**
  *
@@ -106,7 +154,7 @@ exports.getRecievedBookings = async (req, res) => {
 exports.create = (req, res) => {
   // get user data from req.body
   const bookingData = req.body;
-
+  const { stripePaymentToken } = bookingData;
   //   create new booking object
   const booking = new Booking({ ...bookingData, user: res.locals.user });
 
@@ -119,23 +167,38 @@ exports.create = (req, res) => {
   }
 
   // find existing bookings on this rental
-  Booking.find({ rental: booking.rental }, (err, foundBookings) => {
+  Booking.find({ rental: booking.rental }, (err, foundRental) => {
     if (err) {
       return res.databaseError(err);
     }
     // check if booking is valid -> dates is available
-    const validBooking = checkIfBookingIsValid(booking, foundBookings);
+    const validBooking = checkIfBookingIsValid(booking, foundRental);
     if (validBooking) {
-      booking.save((err, booked) => {
-        if (err) {
-          return res.databaseError(err);
-        }
-        return res.json({
-          success: true,
-          startAt: booked.startAt,
-          endAt: booked.endAt,
+      // accept payment
+      const { payment, error } = createPayment(
+        booking,
+        foundRental.user,
+        stripePaymentToken
+      );
+      if (payment) {
+        // provide payment to booking
+        booking.payment = payment;
+        booking.save((err, booked) => {
+          if (err) {
+            return res.databaseError(err);
+          }
+          return res.json({
+            success: true,
+            startAt: booked.startAt,
+            endAt: booked.endAt,
+          });
         });
-      });
+      } else {
+        return res.handleApiError({
+          title: 'Payment not accepted',
+          detail: error,
+        });
+      }
     } else {
       return res.handleApiError({
         title: 'Dates already taken',
