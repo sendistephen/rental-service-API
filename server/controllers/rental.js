@@ -9,12 +9,14 @@ exports.getUserRentals = (req, res) => {
   const { user } = res.locals;
 
   // get rentals where owner is user ->id
-  Rental.find({ owner: user }, (err, rentals) => {
-    if (err) {
-      return res.databaseError(err);
-    }
-    return res.json(rentals);
-  });
+  Rental.find({ owner: user })
+    .populate('image')
+    .exec((err, rentals) => {
+      if (err) {
+        return res.databaseError(err);
+      }
+      return res.json(rentals);
+    });
 };
 
 /**
@@ -48,6 +50,7 @@ exports.getRentals = (req, res) => {
   // find rentals from the city provided
   Rental.find(query)
     .select('-bookings')
+    .populate('image')
     .exec((err, foundRentals) => {
       if (err) {
         return res.databaseError(err);
@@ -74,6 +77,7 @@ exports.getRental = (req, res) => {
   Rental.findById(rentalId)
     .populate('user', 'firstname -password -_id')
     .populate('bookings', 'startAt endAt -_id')
+    .populate('image')
     .exec((err, foundRental) => {
       if (err) {
         return res.databaseError(err);

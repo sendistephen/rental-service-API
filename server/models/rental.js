@@ -25,6 +25,7 @@ const rentalSchema = new Schema({
     required: true,
   },
   shared: Boolean,
+  image: { type: mongoose.Types.ObjectId, ref: 'CloudinaryImage' },
   owner: { type: mongoose.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now },
 });
