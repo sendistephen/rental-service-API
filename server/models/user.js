@@ -57,6 +57,10 @@ const userSchema = new Schema({
     type: mongoose.Types.ObjectId,
     ref: 'Rental',
   },
+  bookings: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Booking',
+  },
   stripeCustomerId: String,
   revenue: Number,
 });
