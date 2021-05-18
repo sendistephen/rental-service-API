@@ -154,9 +154,10 @@ exports.getRecievedBookings = async (req, res) => {
 exports.create = (req, res) => {
   // get user data from req.body
   const bookingData = req.body;
+  const { user } = res.locals;
   const { stripePaymentToken } = bookingData;
   //   create new booking object
-  const booking = new Booking({ ...bookingData, user: res.locals.user });
+  const booking = new Booking({ ...bookingData, user: user.id });
 
   // check if dates are valid
   if (!checkIfBookingDatesAreValid(booking)) {
@@ -174,6 +175,9 @@ exports.create = (req, res) => {
     // check if booking is valid -> dates is available
     const validBooking = checkIfBookingIsValid(booking, foundRental);
     if (validBooking) {
+      booking.user = user;
+      booking.rental = foundRental;
+      foundRental.bookings.push(booking);
       // accept payment
       const { payment, error } = createPayment(
         booking,

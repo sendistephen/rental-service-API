@@ -29,6 +29,7 @@ const rentalSchema = new Schema({
   owner: { type: Schema.Types.ObjectId, ref: 'User' },
   payment: { type: Schema.Types.ObjectId, ref: 'Payment' },
   status: { type: String, default: 'pending' }, //accepted,declined
+  bookings: [{ type: Schema.Types.ObjectId, ref: 'Booking' }],
   createdAt: { type: Date, default: Date.now },
 });
 
