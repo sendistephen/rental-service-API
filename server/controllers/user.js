@@ -266,9 +266,17 @@ exports.getUser = (req, res) => {
         }
       });
   } else {
-    return res.handleApiError({
-      title: 'Invalid ID',
-      detail: 'User with that ID not found',
-    });
+    // apply some data restriction
+    User.findById(userParamsID)
+      .populate('-revenue')
+      .exec((err, foundUser) => {
+        if (err) {
+          return res.handleApiError({
+            title: 'Invalid ID',
+            detail: 'User with that ID not found',
+          });
+        }
+        return res.json(foundUser);
+      });
   }
 };
