@@ -57,6 +57,8 @@ const userSchema = new Schema({
     type: mongoose.Types.ObjectId,
     ref: 'Rental',
   },
+  stripeCustomerId: String,
+  revenue: Number,
 });
 
 // encrypt password before saving it to the database

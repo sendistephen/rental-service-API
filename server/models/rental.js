@@ -25,8 +25,11 @@ const rentalSchema = new Schema({
     required: true,
   },
   shared: Boolean,
-  image: { type: mongoose.Types.ObjectId, ref: 'CloudinaryImage' },
-  owner: { type: mongoose.Types.ObjectId, ref: 'User' },
+  image: { type: Schema.Types.ObjectId, ref: 'CloudinaryImage' },
+  owner: { type: Schema.Types.ObjectId, ref: 'User' },
+  payment: { type: Schema.Types.ObjectId, ref: 'Payment' },
+  status: { type: String, default: 'pending' }, //accepted,declined
+  bookings: [{ type: Schema.Types.ObjectId, ref: 'Booking' }],
   createdAt: { type: Date, default: Date.now },
 });
 
