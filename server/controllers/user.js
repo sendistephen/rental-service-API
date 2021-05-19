@@ -268,7 +268,7 @@ exports.getUser = (req, res) => {
   } else {
     // apply some data restriction
     User.findById(userParamsID)
-      .populate('-revenue')
+      .select('-revenue -password -stripeCustomerId')
       .exec((err, foundUser) => {
         if (err) {
           return res.handleApiError({
