@@ -65,7 +65,12 @@ exports.register = (req, res) => {
           message: `Email has been sent to ${email}, please check your email to activate account`,
         })
       )
-      .catch((error) => console.log(error));
+      .catch((errorMsg) =>
+        res.handleApiError({
+          title: 'Server error!',
+          details: errorMsg,
+        })
+      );
   });
 };
 
@@ -86,8 +91,8 @@ exports.activateAccount = (req, res) => {
       const { firstname, lastname, email, phone, password } = decodedToken;
 
       // check if user exists with the given email
-      User.findOne({ email }, (err, foundUser) => {
-        if (err) return res.databaseError(err);
+      User.findOne({ email }, (error, foundUser) => {
+        if (error) return res.databaseError(err);
 
         if (foundUser) {
           return res.handleApiError({
@@ -100,9 +105,9 @@ exports.activateAccount = (req, res) => {
         // save user
         const user = new User({ firstname, lastname, email, phone, password });
 
-        user.save((err) => {
+        user.save((errResponse) => {
           if (err) {
-            return res.databaseError(err);
+            return res.databaseError(errResponse);
           }
           return res.json({
             success: true,
@@ -148,7 +153,7 @@ exports.signin = (req, res) => {
         { expiresIn: '1hr' }
       );
 
-      const { lastname, email, phone } = foundUser;
+      const { lastname, phone } = foundUser;
 
       return res.json({ token, user: { lastname, email, phone } });
     }
@@ -188,9 +193,9 @@ exports.forgetPassword = (req, res) => {
       `,
     };
 
-    return foundUser.updateOne({ resetPasswordToken: token }, (err) => {
-      if (err) {
-        return res.databaseError(err);
+    return foundUser.updateOne({ resetPasswordToken: token }, (error) => {
+      if (error) {
+        return res.databaseError(error);
       }
       sgMail
         .send(msg)
@@ -200,7 +205,12 @@ exports.forgetPassword = (req, res) => {
             message: `Email has been sent to ${email}, please follow the instructions to reset your password`,
           })
         )
-        .catch((error) => console.log(error));
+        .catch((errorMsg) =>
+          res.handleApiError({
+            title: 'Server error!',
+            details: errorMsg,
+          })
+        );
     });
   });
 };
@@ -220,9 +230,9 @@ exports.resetPassword = (req, res) => {
           detail: 'Token is invalid, please try again',
         });
       }
-      User.findOne({ resetPasswordToken }, (err, user) => {
+      User.findOne({ resetPasswordToken }, (error, user) => {
         if (err || !user) {
-          return res.databaseError(err);
+          return res.databaseError(error);
         }
         const updatedInfo = {
           password: newPassword,
@@ -231,9 +241,9 @@ exports.resetPassword = (req, res) => {
         // modify user doc
         user = _.extend(user, updatedInfo);
         // save user
-        user.save((err) => {
-          if (err) {
-            return res.databaseError(err);
+        user.save((errResponse) => {
+          if (errResponse) {
+            return res.databaseError(errResponse);
           }
           return res.json({
             title: 'Success',
