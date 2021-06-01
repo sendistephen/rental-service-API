@@ -1,11 +1,15 @@
+import React from 'react';
 import './App.css';
+import Header from './components/shared/Header';
+import RentalHome from './pages/RentalHome';
 
-function App() {
+const App = () => {
   return (
     <div className="App">
-      <h1>Helo react</h1>
+      <Header />
+      <RentalHome />
     </div>
   );
-}
+};
 
 export default App;
