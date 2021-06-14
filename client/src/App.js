@@ -1,14 +1,18 @@
 import React from 'react';
-import './App.css';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { Provider } from 'react-redux';
 import Header from './components/shared/Header';
-import RentalHome from './pages/RentalHome';
+import Routes from './Routes';
+import store from 'store';
 
 const App = () => {
   return (
-    <div className="App">
-      <Header />
-      <RentalHome />
-    </div>
+    <Provider store={store}>
+      <Router>
+        <Header />
+        <Routes />
+      </Router>
+    </Provider>
   );
 };
 
