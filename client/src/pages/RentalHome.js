@@ -1,44 +1,15 @@
-/* eslint-disable jsx-a11y/img-redundant-alt */
 import React, { Component } from 'react';
-import RentalCard from '../components/Rentals/Rental/RentalCard';
-
+import { connect } from 'react-redux';
+import RentalCard from 'components/Rentals/Rental/RentalCard';
+import { getAllRentals } from '../store/rentals/rentalsActions';
 class RentalHome extends Component {
-  state = {
-    rentals: [
-      {
-        title: 'Nice view on ocean',
-        city: 'San Francisco',
-        category: 'condo',
-        image: 'http://via.placeholder.com/350x250',
-        numOfRooms: 4,
-        shared: true,
-        description: 'Very nice apartment in center of the city.',
-        dailyPrice: 43,
-      },
-      {
-        title: 'Modern apartment in center',
-        city: 'New York',
-        category: 'apartment',
-        image: 'http://via.placeholder.com/350x250',
-        numOfRooms: 1,
-        shared: false,
-        description: 'Very nice apartment in center of the city.',
-        dailyPrice: 11,
-      },
-      {
-        title: 'Old house in nature',
-        city: 'Bratislava',
-        category: 'house',
-        image: 'http://via.placeholder.com/350x250',
-        numOfRooms: 5,
-        shared: true,
-        description: 'Very nice apartment in center of the city.',
-        dailyPrice: 23,
-      },
-    ],
+
+  componentDidMount = () => {
+    this.props.getAllRentals();
   };
+
   render() {
-    const { rentals } = this.state;
+    const { rentals } = this.props.rentals;
     return (
       <div>
         <div className="card-list">
@@ -47,7 +18,7 @@ class RentalHome extends Component {
             <div className="row">
               {rentals.map((rental) => {
                 return (
-                  <div className="col-md-3">
+                  <div key={rental._id} className="col-md-3">
                     <RentalCard rental={rental} />
                   </div>
                 );
@@ -59,4 +30,11 @@ class RentalHome extends Component {
     );
   }
 }
-export default RentalHome;
+const mapStateToProps = (state) => ({
+  rentals: state.rentals,
+});
+
+const mapDispatchToProps = {
+  getAllRentals,
+};
+export default connect(mapStateToProps, mapDispatchToProps)(RentalHome);

@@ -1,14 +1,15 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 function Header() {
   return (
     <div>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <a className="navbar-brand" href="#">
+          <Link to="/" className="navbar-brand" href="#">
             Rental Service
-          </a>
+          </Link>
           <button
             className="navbar-toggler"
             type="button"
@@ -34,13 +35,19 @@ function Header() {
             </form>
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" aria-current="page" href="#">
+                <Link
+                  to="/"
+                  className="nav-link active"
+                  aria-current="page"
+                  href="#"
+                >
                   Home
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item dropdown">
-                <a
+                <Link
+                  to="/"
                   className="nav-link dropdown-toggle"
                   href="#"
                   id="navbarDropdown"
@@ -49,47 +56,37 @@ function Header() {
                   aria-expanded="false"
                 >
                   Manage
-                </a>
+                </Link>
                 <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
                   <li>
-                    <a className="dropdown-item" href="#">
+                    <Link to="/" className="dropdown-item" href="#">
                       Action
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a className="dropdown-item" href="#">
+                    <Link to="/" className="dropdown-item" href="#">
                       Another action
-                    </a>
+                    </Link>
                   </li>
                   <li>
                     <hr className="dropdown-divider" />
                   </li>
                   <li>
-                    <a className="dropdown-item" href="#">
+                    <Link to="/" className="dropdown-item" href="#">
                       Something else here
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </li>
               <li className="nav-item">
-                <a
-                  className="nav-link disabled"
-                  href="#"
-                  tabindex="-1"
-                  aria-disabled="true"
-                >
+                <Link to="/login" className="nav-link " href="#">
                   Login
-                </a>
+                </Link>
               </li>
               <li className="nav-item">
-                <a
-                  className="nav-link disabled"
-                  href="#"
-                  tabindex="-1"
-                  aria-disabled="true"
-                >
+                <Link to="/register" className="nav-link " href="#">
                   Sign up
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
